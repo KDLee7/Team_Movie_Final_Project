@@ -1,0 +1,36 @@
+/** JAVA PROGRAMMING 2 FINAL PROJECT: TEAM MOVIE
+ * All code worked on by: Alec Norrie, Nicholas Que, Kim Lee, Stacy Rogers, Mason Fox.
+ */
+package application;
+	
+import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.stage.Stage;
+import javafx.scene.Scene;
+import javafx.scene.image.Image;
+import javafx.scene.layout.VBox;
+
+
+
+//Main class literally only opens Login.FXML, launches the program... Everything is in their respective classes, so um... Enjoy. :)
+public class Main extends Application {
+	 @Override
+	public void start(Stage primaryStage) throws Exception{ 
+		try {
+			VBox rootContainer = (VBox) FXMLLoader.load(getClass().getClassLoader().getResource("Login.fxml"));
+			Scene scene = new Scene(rootContainer);
+			primaryStage.getIcons().add(new Image("https://iconsplace.com/wp-content/uploads/_icons/ff0000/256/png/letter-r-icon-14-256.png"));
+			primaryStage.setTitle("Redflix: Login");
+			primaryStage.setScene(scene);
+			primaryStage.show();
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+	} 
+	
+	public static void main(String[] args) {
+		launch(args);
+	}
+
+}
