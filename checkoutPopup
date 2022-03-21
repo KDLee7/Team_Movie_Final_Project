@@ -1,0 +1,68 @@
+package application;
+
+import javafx.application.Platform;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
+
+public class CheckoutPopup {
+	//AnchorPanes
+    @FXML
+    private AnchorPane anchorPane;
+    //Labels
+    @FXML
+    private Label ScreenLabel;
+    @FXML
+    private Label checkoutSuccessLabel;
+    //Buttons
+    @FXML
+    private Button selectionButton;
+    @FXML
+    private Button logOutButton;
+    @FXML
+    private Button quitButton;
+    
+    //METHOD THAT LOGS USER OUT; SENDS BACK TO LOGIN.
+    @FXML
+    void logOut(ActionEvent event) {
+    	Stage stage = (Stage) logOutButton.getScene().getWindow();
+		 stage.close();
+		 try {
+				VBox rootContainer = (VBox) FXMLLoader.load(getClass().getClassLoader().getResource("Login.fxml")); //FOR TESTING FXMLS, SIMPLY TYPE THE FXML FILE NAME IN THE QUOTES.
+				Scene scene = new Scene(rootContainer);
+				Stage returnLogin = new Stage();
+				returnLogin.setScene(scene);
+				returnLogin.show();
+				
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+		} 
+    //METHOD THAT RETURNS USER TO SELECTION SCREEN.
+    @FXML
+    void returnSelection(ActionEvent event) {
+    	Stage stage = (Stage) selectionButton.getScene().getWindow();
+		 stage.close();
+		 try {
+				VBox rootContainer = (VBox) FXMLLoader.load(getClass().getClassLoader().getResource("Selection.fxml")); //FOR TESTING FXMLS, SIMPLY TYPE THE FXML FILE NAME IN THE QUOTES.
+				Scene scene = new Scene(rootContainer);
+				Stage returnLogin = new Stage();
+				returnLogin.setScene(scene);
+				returnLogin.show();
+				
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+		} 
+    //METHOD THAT QUITS PROGRAM.
+    @FXML
+    void quitProgram(ActionEvent event) {
+    	Platform.exit();
+    }
+}
