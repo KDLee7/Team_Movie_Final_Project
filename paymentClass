@@ -1,0 +1,407 @@
+package application;
+
+/**payment.java Class was created by Mason Fox as part of the Movie group final project in Java 2
+*09 Nov 2020
+*Modified by Nicholas Que on 11/30/2020
+**/
+import javafx.application.Application;
+import javafx.geometry.*;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.text.*;
+import javafx.stage.*;
+import java.util.Calendar;
+
+public class paymentClass extends Application {
+
+    static long cardNum;
+    static int cvvCode;
+    static Calendar currentDate = Calendar.getInstance();
+    static int currentYear;
+    static int currentMonth;
+    static int currentDay;
+    static int returnBy;
+    static Calendar expDate = Calendar.getInstance();
+    static int expYear;
+    static int expMonth;
+    static int expDay = 1;
+    static int PaymentMethodID;
+    
+    static Stage payStage = new Stage();
+    
+    public void start(Stage payStage) {
+
+        try {
+            //Setting the default scene
+            payStage.setTitle("Redflix: Cart");
+            payStage.getIcons().add(new Image("https://iconsplace.com/wp-content/uploads/_icons/ff0000/256/png/letter-r-icon-14-256.png"));
+            entryScreen(payStage); //Starting the first page method that controls everything
+            payStage.show(); //keeps the stage open until manually closed
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void main(String[] args)
+    {
+        launch(args);
+    }
+
+    private static void entryScreen(Stage payStage) { //the main payment screen that greets the user
+
+        setCurrentDate();
+
+        Label payQuestion = new Label("What method of payment would you like to use?");
+
+        Button payCredit = new Button("Credit Card"); //Creates a button with the title credit card
+        payCredit.setPrefSize(100, 50); //sets preferred size to 100x100 pixels
+
+        Button payDebit = new Button("Debit Card"); //Creates a button with the title debit card
+        payDebit.setPrefSize(100, 50); //sets preferred size to 100x100 pixels
+
+        Button cancelBtn = new Button ("Cancel"); //will allow the user to navigate back to previous screen
+        cancelBtn.setPrefSize(100, 50); //sets preferred size to 100x100 pixels
+
+        VBox payBox = new VBox(15, payQuestion, payCredit, payDebit, cancelBtn); //Creates a vbox with payQuestion as the argument and 15 pixels as the space between
+        payBox.setPadding(new Insets(30, 30, 30, 30)); //creates a padding for the vbox object with 30 pixels all the way around
+        payBox.setAlignment(Pos.CENTER);
+
+        //calling method to execute payCredit window
+        payCredit.setOnAction(event -> payCredit(payStage));
+
+        //calling method to execute payDebit window
+        payDebit.setOnAction(event -> payDebit(payStage));
+
+        cancelBtn.setOnAction(event -> payStage.close());
+
+        Scene payScene = new Scene(payBox, 325, 275);
+        payStage.setScene(payScene);
+    }
+
+    //Creating payCredit scene
+    private static void payCredit(Stage payStage) { //Creating Gridpane scene if card payment is selected
+
+        Label creditPrompt = new Label("Please input your Credit Card details");
+        Separator horizontalSeparator = new Separator(Orientation.HORIZONTAL);
+        GridPane cCardInfo = new GridPane();
+
+        //Creating date picker dropdown box, iterating through 12 months
+        ChoiceBox<Integer> monthPicker = new ChoiceBox<Integer>();
+        for (int i = 1; i < 13; i++)
+            monthPicker.getItems().add(i);
+        Text monthInstruc = new Text ("Month");
+        monthPicker.setValue(1);
+
+
+        //Creating year picker dropdown box from current year to 5 years forward
+        ChoiceBox<Integer> yearPicker = new ChoiceBox<Integer>();
+        for (int i = currentYear; i < (currentYear+6); i++)
+            yearPicker.getItems().add(i);
+        Text yearInstruc = new Text ("Year");
+        yearPicker.setValue(2020);
+
+
+        //Putting month and year selectors into vboxes with instructions and then together as hbox
+        Text divider = new Text("/");
+        VBox vMonthPicker = new VBox (2, monthPicker, monthInstruc);
+        vMonthPicker.setAlignment(Pos.CENTER_LEFT);
+        VBox vYearPicker = new VBox (2, yearPicker, yearInstruc);
+        vYearPicker.setAlignment(Pos.CENTER_LEFT);
+        HBox hDatePicker = new HBox(5, vMonthPicker, divider, vYearPicker);
+
+        //Creating card info field
+        TextField cardField = new TextField();
+        cardField.setText("1234123412341234"); //see if this works as a placeholder
+        Text cardInstruc = new Text("Card Number");
+        VBox cardEntry = new VBox (2, cardField, cardInstruc);
+        cardEntry.setAlignment(Pos.CENTER_LEFT);
+
+        //Creating cvv entry field
+        PasswordField cvvField = new PasswordField();
+        cvvField.setText("000");
+        Text cvvInstruc = new Text("CVV");
+        VBox cvvEntry = new VBox (2, cvvField, cvvInstruc);
+        cvvEntry.setAlignment(Pos.CENTER_LEFT);
+
+        //Creating button to submit card info
+        Button submitBtn = new Button("Submit");
+        submitBtn.setPrefSize(75, 25);
+        HBox shBtn = new HBox(10, submitBtn);
+        shBtn.setAlignment(Pos.BOTTOM_RIGHT);
+
+        //Creating text output field if error is encountered
+        Text errorReport = new Text("");
+        errorReport.setFont(Font.font("Arial", FontWeight.BOLD, 12));
+        errorReport.setFill(Color.RED);
+
+        //Setting the cCardInfo GridPane layout
+        cCardInfo.setAlignment(Pos.CENTER);
+        cCardInfo.setHgap(10);
+        cCardInfo.setVgap(10);
+        cCardInfo.setPadding(new Insets(15,15,15,15));
+
+        //Adding all the fields to the GridPane object
+        cCardInfo.add(creditPrompt, 0, 0, 3, 1);
+        cCardInfo.add(horizontalSeparator, 0, 1, 3, 1);
+        cCardInfo.add(cardEntry, 0, 2, 2, 1);
+        cCardInfo.add(hDatePicker, 2, 2, 1, 1);
+        cCardInfo.add(cvvEntry, 0, 3, 1, 1);
+        cCardInfo.add(shBtn, 2, 5, 1, 1);
+        cCardInfo.add(errorReport, 0, 4, 3, 1);
+
+
+        //When the submit button is selected
+        submitBtn.setOnAction(event -> {
+            expMonth = Integer.parseInt(monthPicker.getValue().toString());
+            expYear = Integer.parseInt(yearPicker.getValue().toString());
+            setExpirationDate(expMonth, expYear);
+
+            if((cardField.getText().length() != 16) || (getExpirationDate()).before(currentDate) || (cvvField.getText().length() != 3 || cvvField.getText().equals("000")))
+            {
+                errorReport.setText("Errors Found When Submitting Information. \nPlease Refer to Titles Highlighted Red.");
+
+                if(cardField.getText().length() != 16) {
+                    //cardField.setText("");
+                    cardInstruc.setStroke(Color.RED); //this SHOULD work
+                }
+                if ((getExpirationDate()).before(currentDate)) {
+                    monthInstruc.setStroke(Color.RED); //outlines the box in red - experimental
+                    yearInstruc.setStroke(Color.RED); //outlines the box in red - experimental
+                }
+                if (cvvField.getText().length() != 3 || cvvField.getText().equals("000")) {
+                    //cvvField.setText("");
+                    cvvInstruc.setStroke(Color.RED); //outlines the box in red - experimental
+                }
+
+            } else {
+                String tempCard = cardField.getText();
+                String tempCVV = cvvField.getText();
+                setCardNumber(tempCard);
+                setCvvCode(tempCVV);
+                setEndOfRental();
+
+                final Stage dialog = new Stage();
+                dialog.initModality(Modality.APPLICATION_MODAL);
+                dialog.initOwner(payStage);
+                Button conBtn = new Button("Continue");
+                Text output = new Text("Information Submitted Successfully!");
+                output.setFont(Font.font("Arial", 12));
+                output.setFill(Color.GREEN);
+                output.setTextAlignment(TextAlignment.CENTER);
+                VBox dialogVbox = new VBox(20, output, conBtn);
+                dialogVbox.setAlignment(Pos.CENTER);
+                Scene dialogScene = new Scene(dialogVbox, 275, 75);
+                dialog.initStyle(StageStyle.UTILITY);
+                dialog.setScene(dialogScene);
+                dialog.show();
+              
+                conBtn.setOnAction(Event -> payStage.close());
+                setPaymentMethodID(2); //ADDED BY NICHOLAS QUE: AFTER CLOSING PAYSTAGE FOR DEBIT, SET PAYMENT TO 2
+
+            }
+        });
+
+        Scene cCardPayment = new Scene(cCardInfo, 325, 275);
+        payStage.setScene(cCardPayment);
+    }
+
+    //Creating payAccount Scene
+    private static void payDebit(Stage payStage)
+    {
+        Label debitPrompt = new Label("Please input your Debit Card details");
+        Separator horizontalSeparator = new Separator(Orientation.HORIZONTAL);
+        GridPane dCardInfo = new GridPane();
+
+        //Creating date picker dropdown box, iterating through 12 months
+        ChoiceBox<Integer> monthPicker = new ChoiceBox<Integer>();
+        for (int i = 1; i < 13; i++)
+            monthPicker.getItems().add(i);
+        Text monthInstruc = new Text ("Month");
+        monthPicker.setValue(1);
+
+
+        //Creating year picker dropdown box from current year to 5 years forward
+        ChoiceBox<Integer> yearPicker = new ChoiceBox<Integer>();
+        for (int i = currentYear; i < (currentYear+6); i++)
+            yearPicker.getItems().add(i);
+        Text yearInstruc = new Text ("Year");
+        yearPicker.setValue(2020);
+
+
+        //Putting month and year selectors into vboxes with instructions and then together as hbox
+        Text divider = new Text("/");
+        VBox vMonthPicker = new VBox (2, monthPicker, monthInstruc);
+        vMonthPicker.setAlignment(Pos.CENTER_LEFT);
+        VBox vYearPicker = new VBox (2, yearPicker, yearInstruc);
+        vYearPicker.setAlignment(Pos.CENTER_LEFT);
+        HBox hDatePicker = new HBox(5, vMonthPicker, divider, vYearPicker);
+
+        //Creating card info field
+        TextField cardField = new TextField();
+        cardField.setText("1234567890000000"); //see if this works as a placeholder
+        Text cardInstruc = new Text("Card Number");
+        VBox cardEntry = new VBox (2, cardField, cardInstruc);
+        cardEntry.setAlignment(Pos.CENTER_LEFT);
+
+        //Creating cvv entry field
+        PasswordField cvvField = new PasswordField();
+        cvvField.setText("000");
+        Text cvvInstruc = new Text("CVV");
+        VBox cvvEntry = new VBox (2, cvvField, cvvInstruc);
+        cvvEntry.setAlignment(Pos.CENTER_LEFT);
+
+        //Creating button to submit card info
+        Button submitBtn = new Button("Submit");
+        submitBtn.setPrefSize(75, 25);
+        HBox shBtn = new HBox(10, submitBtn);
+        shBtn.setAlignment(Pos.BOTTOM_RIGHT);
+
+        //Creating text output field if error is encountered
+        Text errorReport = new Text("");
+        errorReport.setFont(Font.font("Arial", FontWeight.BOLD, 12));
+        errorReport.setFill(Color.RED);
+
+        //Setting the cCardInfo GridPane layout
+        dCardInfo.setAlignment(Pos.CENTER);
+        dCardInfo.setHgap(10);
+        dCardInfo.setVgap(10);
+        dCardInfo.setPadding(new Insets(15,15,15,15));
+
+        //Adding all the fields to the GridPane object
+        dCardInfo.add(debitPrompt, 0, 0, 3, 1);
+        dCardInfo.add(horizontalSeparator, 0, 1, 3, 1);
+        dCardInfo.add(cardEntry, 0, 2, 2, 1);
+        dCardInfo.add(hDatePicker, 2, 2, 1, 1);
+        dCardInfo.add(cvvEntry, 0, 3, 1, 1);
+        dCardInfo.add(shBtn, 2, 5, 1, 1);
+        dCardInfo.add(errorReport, 0, 4, 3, 1);
+
+
+        //When the submit button is selected
+        submitBtn.setOnAction(event -> {
+
+            expMonth = Integer.parseInt(monthPicker.getValue().toString());
+            expYear = Integer.parseInt(yearPicker.getValue().toString());
+            setExpirationDate(expMonth, expYear);
+
+            if((cardField.getText().length() != 16) || (getExpirationDate()).before(currentDate) || (cvvField.getText().length() != 3 || cvvField.getText().equals("000")))
+            {
+                errorReport.setText("Errors Found When Submitting Information. \nPlease Refer to Titles Highlighted Red.");
+
+                if(cardField.getText().length() != 16) {
+                    //cardField.setText("");
+                    cardInstruc.setStroke(Color.RED); //this SHOULD work
+                }
+                if ((getExpirationDate()).before(currentDate)) {
+                    monthInstruc.setStroke(Color.RED); //outlines the box in red - experimental
+                    yearInstruc.setStroke(Color.RED); //outlines the box in red - experimental
+                }
+                if (cvvField.getText().length() != 3 || cvvField.getText().equals("000")) {
+                    //cvvField.setText("");
+                    cvvInstruc.setStroke(Color.RED); //outlines the box in red - experimental
+                }
+
+            } else {
+                String tempCard = cardField.getText();
+                String tempCVV = cvvField.getText();
+                setCardNumber(tempCard);
+                setCvvCode(tempCVV);
+                setEndOfRental();
+
+                final Stage dialog = new Stage();
+                dialog.initModality(Modality.APPLICATION_MODAL);
+                dialog.initOwner(payStage);
+                Button conBtn = new Button("Continue");
+                Text output = new Text("Information Submitted Successfully!");
+                output.setFont(Font.font("Arial", 12));
+                output.setFill(Color.GREEN);
+                output.setTextAlignment(TextAlignment.CENTER);
+                VBox dialogVbox = new VBox(20, output, conBtn);
+                dialogVbox.setAlignment(Pos.CENTER);
+                Scene dialogScene = new Scene(dialogVbox, 275, 75);
+                dialog.initStyle(StageStyle.UTILITY);
+                dialog.setScene(dialogScene);
+                dialog.show();
+
+                conBtn.setOnAction(Event -> payStage.close());
+                setPaymentMethodID(5); //ADDED BY NICHOLAS QUE: AFTER CLOSING PAYSTAGE FOR DEBIT, SET PAYMENT TO 5
+
+            }
+        });
+
+        Scene dCardPayment = new Scene(dCardInfo, 325, 275);
+        payStage.setScene(dCardPayment);
+    }
+
+    //series of setters to set data throughout the program
+    public static void setCurrentDate()
+    {
+        currentYear = currentDate.get(Calendar.YEAR);
+        currentMonth = currentDate.get(Calendar.MONTH) + 1;
+        currentDay = currentDate.get(Calendar.DAY_OF_MONTH);
+    }
+
+    public static void setCardNumber(String card)
+    {
+        //cardNum = Double.parseDouble(card);
+        cardNum = Long.parseLong(card);
+    }
+
+    public static void setExpirationDate(int expMonth, int expYear)
+    {
+       expDate.set(expYear, expMonth, expDay);
+    }
+
+    public static void setCvvCode(String codeNum)
+    {
+        cvvCode = (int) Double.parseDouble(codeNum);
+    }
+
+    public static void setEndOfRental()
+    {
+        returnBy = currentDay + 2;
+    }
+    
+    public static void setPaymentMethodID(int payMethodID) { //ADDED BY NICHOLAS QUE | SETS PAYMENTMETHOD ID
+    	 PaymentMethodID = payMethodID;
+    }
+
+    //series of getters to retrieve set data in the program
+    public static String getCurrentDate()
+    {
+        return currentYear + "-" + currentMonth + "-" + currentDay;
+    }
+
+    public static long getCardNumber()
+    {
+        return cardNum;
+    }
+
+    public static int getCvvCode() { 
+    	return cvvCode; 
+    	}
+
+    public static Calendar getExpirationDate()
+    {
+        return expDate;
+    }
+
+    public static String sqlExpDate()
+    {
+        return expYear + "-" + expMonth + "-" + expDay;
+    }
+
+    public static String getEndOfRental()
+    {
+        return currentYear + "-" + currentMonth + "-" + returnBy;
+    }
+    
+    public static int getPaymentMethodID() { //ADDED BY NICHOLAS QUE | GETS PAYMENT METHOD ID
+    	return PaymentMethodID;
+    }
+    
+
+} //end of class
