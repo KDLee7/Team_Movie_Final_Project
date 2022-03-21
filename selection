@@ -1,0 +1,694 @@
+package application;
+
+import javafx.application.Platform;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.TextArea;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class Selection {
+	Connection con  = null;
+
+    @FXML
+    private AnchorPane anchorPane;
+
+    @FXML
+    private MenuButton settingsButtonMenu;
+
+    @FXML
+    private Label welcomeLabel;
+
+    @FXML
+    private Label selectAMovieLabel;
+
+    @FXML
+    private Label ScifiLabel;
+
+    @FXML
+    private Label HorrorLabel;
+
+    @FXML
+    private Label WesternLabel;
+
+    @FXML
+    private Label ComedyLabel;
+
+    @FXML
+    private Label DramaLabel;
+    @FXML
+    private Label connectionLabel;
+    
+    @FXML
+    private TextArea movieInformation;
+
+    @FXML
+    private ImageView DuckSoupImage;
+    private int Ducksoup = 0;
+
+
+    @FXML
+    private ImageView PlanesTrainsAutoImage;
+    private int Trains = 0;
+
+    @FXML
+    private ImageView WalkingNedDivineImage;
+    private int Walking = 0;
+
+    @FXML
+    private ImageView DeepBlueSeaImage;
+    private int BlueSea = 0;
+
+    @FXML
+    private ImageView TheFifthElementImage;
+    private int Element = 0;
+
+    @FXML
+    private ImageView TexasChainSawImage;
+    private int Chainsaw = 0;
+
+    @FXML
+    private ImageView JawImage;
+    private int Jaw = 0;
+
+    @FXML
+    private ImageView AlienImage;
+    private int Alien = 0;
+
+    @FXML
+    private ImageView BladeRunnerImage;
+    private int BladeRunner = 0;
+
+    @FXML
+    private ImageView StarwarsImage;
+    private int StarWars = 0;
+
+    @FXML
+    private ImageView SilveradoImage;
+    private int Silverado = 0;
+
+    @FXML
+    private ImageView GoodBadUglyImage;
+    private int GoodBadUgly = 0;
+
+    @FXML
+    private Label lblChainsaw;
+
+    @FXML
+    private Label lblJaws;
+
+    @FXML
+    private Label lblBlueSea;
+
+    @FXML
+    private Label lblFifthElement;
+
+    @FXML
+    private Label lblDuck;
+
+    @FXML
+    private Label lblTrains;
+
+    @FXML
+    private Label lblWaking;
+
+    @FXML
+    private Label lblAlien;
+
+    @FXML
+    private Label lblBladeRunner;
+
+    @FXML
+    private Label lblStarWars;
+
+    @FXML
+    private Label lblSilverado;
+
+    @FXML
+    private Label lblGoodBadUgly;
+    
+    @FXML
+    private Label displayError;
+
+    @FXML
+    private Button ButtonCheckout;
+    
+    @FXML
+    private Button editPaymentButton;
+
+    @FXML
+    private Button logoutButton;
+
+    @FXML
+    private Button quitButton;
+
+    List<Integer> movieStock = new ArrayList<Integer>();
+    List<Integer> movieCost = new ArrayList<Integer>();
+    List<String> movieCategory = new ArrayList<String>();
+    List<Integer> movieID = new ArrayList<Integer>();
+    List<String> movieName = new ArrayList<String>();
+    //LISTS USED FOR WHEN USER SELECTS SPECIFIC MOVIE
+    List<String> selectedMovies = new ArrayList<String>();
+    List<Integer> selectedMovieCosts = new ArrayList<Integer>();
+
+    
+    @FXML
+    void initialize() throws SQLException, ClassNotFoundException {
+    	try {
+    		selectAMovieLabel.setText("Welcome, " + dataTransfer.getName() + ". Please select your movies.");
+    		
+    		//CONNECTING TO ORACLE
+    		Class.forName("oracle.jdbc.driver.OracleDriver");
+    		
+    		con  = DriverManager.getConnection("jdbc:oracle:thin:@oracle.gulfcoast.edu:1539:CLASS", "Java8311", "Java211");
+    		
+    				if (con != null)
+    					connectionLabel.setText("Connection established.");
+    				else
+    					connectionLabel.setText("Unable to connect.");
+       
+    				String sqlQuery = "SELECT MOVIE_CATEGORY, MOVIE_ID, movie_value, movie_qty, movie_title"
+    						+ " FROM MM_MOVIE_TYPE"
+    						+ " INNER JOIN MM_MOVIE"
+    						+ " ON mm_movie_type.movie_cat_id = mm_movie.movie_cat_id";
+    				Statement stmt = con.createStatement();
+    				ResultSet rs = stmt.executeQuery(sqlQuery);
+    		
+    				while (rs.next()){
+    					int movieqty = rs.getInt("movie_qty");
+    					int moviecst = rs.getInt("movie_value");
+    					int movieid = rs.getInt("movie_id");
+    					String moviecat = rs.getString("movie_category");
+    					String moviename = rs.getString("movie_title");
+    					movieCategory.add(moviecat);
+    					movieStock.add(movieqty);
+    					movieCost.add(moviecst);
+    					movieID.add(movieid);
+    					movieName.add(moviename);
+    				}
+    				 } catch (ClassNotFoundException e1) {        
+    					 e1.printStackTrace();        } 
+    				 catch (SQLException e1) {               
+    					 e1.printStackTrace();        
+    				 }//end catch
+    				 finally{
+    					 try {
+    						 if(con!=null) con.close();	// close connection               
+    					 } catch (SQLException e1) {   
+    						 e1.printStackTrace();   
+    						 }//end catch     
+    				 }//end finally to close connection
+    					
+    				if (movieStock.get(0) == 0) {
+    		            lblAlien.setText("Out of Stock");
+    				}
+    		        if (movieStock.get(1) == 0) {
+    		            lblBladeRunner.setText("Out of Stock");
+    		        }
+    		        if (movieStock.get(2) == 0) {
+    		            lblStarWars.setText("Out of Stock");
+    		        }
+    		        if (movieStock.get(3) == 0) {
+    		            lblChainsaw.setText("Out of Stock");
+    		        }
+    		        if (movieStock.get(4) == 0) {
+    		            lblJaws.setText("Out of Stock");
+    		        }
+    		        if (movieStock.get(5) == 0) {
+    		            lblGoodBadUgly.setText("Out of Stock");
+    		        }
+    		        if (movieStock.get(6) == 0) {
+    		            lblSilverado.setText("Out of Stock");
+    		        }
+    		        if (movieStock.get(7) == 0) {
+    		            lblDuck.setText("Out of Stock");
+    		        }
+    		        if (movieStock.get(8) == 0) {
+        		        lblTrains.setText("Out of Stock");
+    		        }
+    		        if (movieStock.get(9) == 0) {
+    		            lblWaking.setText("Out of Stock");
+    		        }
+    		        if (movieStock.get(10) == 0) {
+    		            lblBlueSea.setText("Out of Stock");
+    		        }
+    		        if (movieStock.get(11) == 0) {
+    		            lblFifthElement.setText("Out of Stock");
+    		        }
+    	}
+    	
+    
+
+  
+    @FXML
+    void displayInformation(MouseEvent event) { //WHEN USER HOVERS OVER MOVIE ICON, INFORMATION WILL BE DISPLAYED ABOVE THE CHECKOUT BUTTON. 
+    	//ALIEN
+    	AlienImage.setOnMouseEntered(mouseEvent -> {
+    		movieInformation.setVisible(true);
+    		movieInformation.setText("Movie ID: "+movieID.get(0)+"\n"
+    				+ "Movie: "+movieName.get(0)+"\n"
+    				+ "Genre: "+movieCategory.get(0)+"\n"
+    				+ "Cost: $"+movieCost.get(0)+"\n"
+    				+ "Stock: "+movieStock.get(0)
+    				);
+    	});
+    	AlienImage.setOnMouseExited(mouseEvent -> {
+    		movieInformation.setVisible(false);
+    	});
+    	//BLADE RUNNER
+    	BladeRunnerImage.setOnMouseEntered(mouseEvent -> {
+    		movieInformation.setVisible(true);
+    		movieInformation.setText("Movie ID: "+movieID.get(1)+"\n"
+    				+ "Movie: "+movieName.get(1)+"\n"
+    				+ "Genre: "+movieCategory.get(1)+"\n"
+    				+ "Cost: $"+movieCost.get(1)+"\n"
+    				+ "Stock: "+movieStock.get(1)
+    				);
+    	
+    	});
+    	BladeRunnerImage.setOnMouseExited(mouseEvent -> {
+    		movieInformation.setVisible(false);
+    	});
+    	//STAR WARS
+    	StarwarsImage.setOnMouseEntered(mouseEvent -> {
+    		movieInformation.setVisible(true);
+    		movieInformation.setText("Movie ID: "+movieID.get(1)+"\n"
+    				+ "Movie: "+movieName.get(2)+"\n"
+    				+ "Genre: "+movieCategory.get(2)+"\n"
+    				+ "Cost: $"+movieCost.get(2)+"\n"
+    				+ "Stock: "+movieStock.get(2)
+    				);
+    	});
+    	StarwarsImage.setOnMouseExited(mouseEvent -> {
+    		movieInformation.setVisible(false);
+    	});
+    	//TEXAS CHAINSAW MASSACRE
+    	TexasChainSawImage.setOnMouseEntered(mouseEvent -> {
+    		movieInformation.setVisible(true);
+    		movieInformation.setText("Movie ID: "+movieID.get(3)+"\n"
+    				+ "Movie: "+movieName.get(3)+"\n"
+    				+ "Genre: "+movieCategory.get(3)+"\n"
+    				+ "Cost: $"+movieCost.get(3)+"\n"
+    				+ "Stock: "+movieStock.get(3)
+    				);
+    
+    	});
+    	TexasChainSawImage.setOnMouseExited(mouseEvent -> {
+    		movieInformation.setVisible(false);
+    	});
+    	//JAWS
+    	JawImage.setOnMouseEntered(mouseEvent -> {
+    		movieInformation.setVisible(true);
+    		movieInformation.setText("Movie ID: "+movieID.get(4)+"\n"
+    				+ "Movie: "+movieName.get(4)+"\n"
+    				+ "Genre: "+movieCategory.get(4)+"\n"
+    				+ "Cost: $"+movieCost.get(4)+"\n"
+    				+ "Stock: "+movieStock.get(4)
+    				);
+
+    	});
+    	JawImage.setOnMouseExited(mouseEvent -> {
+    		movieInformation.setVisible(false);
+    	});
+    	//GOOD BAD UGLY
+    	GoodBadUglyImage.setOnMouseEntered(mouseEvent -> {
+    		movieInformation.setVisible(true);
+    		movieInformation.setText("Movie ID: "+movieID.get(5)+"\n"
+    				+ "Movie: "+movieName.get(5)+"\n"
+    				+ "Genre: "+movieCategory.get(5)+"\n"
+    				+ "Cost: $"+movieCost.get(5)+"\n"
+    				+ "Stock: "+movieStock.get(5)
+    				);
+
+    	});
+    	GoodBadUglyImage.setOnMouseExited(mouseEvent -> {
+    		movieInformation.setVisible(false);
+    	});
+    	//SILVERADO IMAGE
+    	SilveradoImage.setOnMouseEntered(mouseEvent -> {
+    		movieInformation.setVisible(true);
+    		movieInformation.setText("Movie ID: "+movieID.get(6)+"\n"
+    				+ "Movie: "+movieName.get(6)+"\n"
+    				+ "Genre: "+movieCategory.get(6)+"\n"
+    				+ "Cost: $"+movieCost.get(6)+"\n"
+    				+ "Stock: "+movieStock.get(6)
+    				);
+    	});
+    	SilveradoImage.setOnMouseExited(mouseEvent -> {
+    		movieInformation.setVisible(false);
+    	});
+    	//DUCK SOUP
+    	DuckSoupImage.setOnMouseEntered(mouseEvent -> {
+    		movieInformation.setVisible(true);
+    		movieInformation.setText("Movie ID: "+movieID.get(7)+"\n"
+    				+ "Movie: "+movieName.get(7)+"\n"
+    				+ "Genre: "+movieCategory.get(7)+"\n"
+    				+ "Cost: $"+movieCost.get(7)+"\n"
+    				+ "Stock: "+movieStock.get(7)
+    				);
+    	});
+    	DuckSoupImage.setOnMouseExited(mouseEvent -> {
+    		movieInformation.setVisible(false);
+    	});
+    	//PLANES, TRAINS AND AUTOMOBILES
+    	PlanesTrainsAutoImage.setOnMouseExited(mouseEvent -> {
+    		movieInformation.setVisible(false);
+    	});
+    	PlanesTrainsAutoImage.setOnMouseEntered(mouseEvent -> {
+    		movieInformation.setVisible(true);
+    		movieInformation.setText("Movie ID: "+movieID.get(8)+"\n"
+    				+ "Movie: "+movieName.get(8)+"\n"
+    				+ "Genre: "+movieCategory.get(8)+"\n"
+    				+ "Cost: $"+movieCost.get(8)+"\n"
+    				+ "Stock: "+movieStock.get(8)
+    				);
+
+    	});
+    	//WALKING NED DEVINES
+    	WalkingNedDivineImage.setOnMouseEntered(mouseEvent -> {
+    		movieInformation.setVisible(true);
+    		movieInformation.setText("Movie ID: "+movieID.get(9)+"\n"
+    				+ "Movie: "+movieName.get(9)+"\n"
+    				+ "Genre: "+movieCategory.get(9)+"\n"
+    				+ "Cost: $"+movieCost.get(9)+"\n"
+    				+ "Stock: "+movieStock.get(9)
+    				);
+
+    	});
+    	WalkingNedDivineImage.setOnMouseExited(mouseEvent -> {
+    		movieInformation.setVisible(false);
+    	});
+    	//DEEP BLUE SEA
+    	DeepBlueSeaImage.setOnMouseEntered(mouseEvent -> {
+    		movieInformation.setVisible(true);
+    		movieInformation.setText("Movie ID: "+movieID.get(10)+"\n"
+    				+ "Movie: "+movieName.get(10)+"\n"
+    				+ "Genre: "+movieCategory.get(10)+"\n"
+    				+ "Cost: $"+movieCost.get(10)+"\n"
+    				+ "Stock: "+movieStock.get(10)
+    				);
+
+    	});
+    	DeepBlueSeaImage.setOnMouseExited(mouseEvent -> {
+    		movieInformation.setVisible(false);
+    	});
+    	//THE FIFTH ELEMENT
+    	TheFifthElementImage.setOnMouseEntered(mouseEvent -> {
+    		movieInformation.setVisible(true);
+    		movieInformation.setText("Movie ID: "+movieID.get(11)+"\n"
+    				+ "Movie: "+movieName.get(11)+"\n"
+    				+ "Genre: "+movieCategory.get(11)+"\n"
+    				+ "Cost: $"+movieCost.get(11)+"\n"
+    				+ "Stock: "+movieStock.get(11)
+    				);
+
+    	});
+    	TheFifthElementImage.setOnMouseExited(mouseEvent -> {
+    		movieInformation.setVisible(false);
+    	});
+    }
+    @FXML
+    void AlienSelect(MouseEvent mouseEvent) {
+    	if (movieStock.get(0) == 0) {
+            lblAlien.setText("Out of Stock");
+        }
+        else if (Alien == 0){
+            Alien = 1;
+
+            lblAlien.setText("Selected");
+            selectedMovies.add(movieName.get(0)); //adds to movieList view
+            selectedMovieCosts.add(movieCost.get(0)); //adds to movieList view
+        }
+        else if (Alien == 1){
+            Alien = 0; 
+            lblAlien.setText("In Stock");
+        }
+    } 
+    @FXML
+    void BladeRunnerSelect(MouseEvent mouseEvent) {
+    	if (movieStock.get(1) == 0) {
+            lblBladeRunner.setText("Out of Stock");
+    	}
+        else if (BladeRunner == 0){
+            BladeRunner = 1;
+
+            lblBladeRunner.setText("Selected");
+            selectedMovies.add(movieName.get(1)); //adds to movieList view
+            selectedMovieCosts.add(movieCost.get(1)); //adds to movieList view
+            
+        }
+        else if (BladeRunner == 1){
+            BladeRunner = 0;
+            lblBladeRunner.setText("In Stock");
+        }
+    } 
+    @FXML
+    void StarWarSelect(MouseEvent mouseEvent) {
+        if (movieStock.get(2) == 0) {
+            lblStarWars.setText("Out of Stock");
+        }
+        else if (StarWars == 0){
+            StarWars = 1;
+
+            lblStarWars.setText("Selected");
+            selectedMovies.add(movieName.get(2)); //adds to movieList view
+            selectedMovieCosts.add(movieCost.get(2)); //adds to movieList view
+        } 
+        else if (StarWars == 1){
+            StarWars = 0; 
+            lblStarWars.setText("In Stock");
+        }
+   }
+    @FXML
+    void ChainsawSelect(MouseEvent mouseEvent) {
+    	if (movieStock.get(3) == 0) {
+            lblChainsaw.setText("Out of Stock");
+            }
+    	else if (Chainsaw == 0){
+            Chainsaw = 1;
+            lblChainsaw.setText("Selected");
+            selectedMovies.add(movieName.get(3)); //adds to movieList view
+            selectedMovieCosts.add(movieCost.get(3)); //adds to movieList view
+        }
+        else if (Chainsaw == 1){
+            Chainsaw = 0; 
+            lblChainsaw.setText("In Stock");
+        }
+    }
+    @FXML
+    void JawsSelect(MouseEvent mouseEvent) {
+        if (movieStock.get(4) == 0) {
+        	lblJaws.setText("Out of Stock");
+        }
+        else if (Jaw == 0){
+            Jaw = 1;
+
+            lblJaws.setText("Selected");
+            selectedMovies.add(movieName.get(4)); //adds to movieList view
+            selectedMovieCosts.add(movieCost.get(4)); //adds to movieList view
+        }
+        else if (Jaw == 1){
+            Jaw = 0; 
+            lblJaws.setText("In Stock");
+        }
+    }
+    @FXML
+    void GoodBadUglySelect(MouseEvent mouseEvent) {
+    	if (movieStock.get(5) == 0) {
+            lblGoodBadUgly.setText("Out of Stock");
+        }
+    	else if (GoodBadUgly == 0){
+            GoodBadUgly = 1;
+            lblGoodBadUgly.setText("Selected");
+            selectedMovies.add(movieName.get(5)); //adds to movieList view
+            selectedMovieCosts.add(movieCost.get(5)); //adds to movieList view
+        }
+        else if (GoodBadUgly == 1) {
+            GoodBadUgly = 0;
+            lblGoodBadUgly.setText("In Stock");
+        }
+    }
+
+    @FXML
+    void SilveradoSelect(MouseEvent mouseEvent) {
+        if (movieStock.get(6) == 0) {
+            lblSilverado.setText("Out of Stock");
+        }
+        else if (Silverado == 0){
+            Silverado = 1;
+
+            lblSilverado.setText("Selected");
+            selectedMovies.add(movieName.get(6)); //adds to movieList view
+            selectedMovieCosts.add(movieCost.get(6)); //adds to movieList view
+        }
+        else if (Silverado == 1){
+            Silverado = 0;
+            lblSilverado.setText("In Stock");
+        }
+    }
+    @FXML
+    void DuckSoupSelect(MouseEvent mouseEvent) {
+    	if (movieStock.get(7) == 0) {
+            lblDuck.setText("Out of Stock");
+            } 
+    	else if (Ducksoup == 0) {
+            Ducksoup = 1;
+            lblDuck.setText("Selected");
+            selectedMovies.add(movieName.get(7)); //adds to movieList view
+            selectedMovieCosts.add(movieCost.get(7)); //adds to movieList view
+        }
+    	else if (Ducksoup == 1) {
+            Ducksoup = 0;
+            lblDuck.setText("In Stock");
+        }
+    }
+    @FXML
+    void PlanesTrainSelect(MouseEvent mouseEvent) {
+    	if (movieStock.get(8) == 0) {
+            lblTrains.setText("Out of Stock");
+            }
+    	else if (Trains == 0){
+            Trains = 1;
+            lblTrains.setText("Selected");
+            selectedMovies.add(movieName.get(8)); //adds to movieList view
+            selectedMovieCosts.add(movieCost.get(8)); //adds to movieList view
+        }
+        else if (Trains == 1){
+            Trains = 0;
+            lblTrains.setText("In Stock");
+        }
+    }
+    @FXML
+    void WalkingSelect(MouseEvent mouseEvent) {
+        
+    	if (movieStock.get(9) == 0) {
+            lblWaking.setText("Out of Stock");
+            }
+    	else if (Walking == 0){
+            Walking = 1;
+            lblWaking.setText("Selected");
+            selectedMovies.add(movieName.get(9)); //adds to movieList view
+            selectedMovieCosts.add(movieCost.get(9)); //adds to movieList view
+        }
+        else if (Walking == 1){
+            Walking = 0;
+            lblWaking.setText("In Stock");
+        }
+    }
+    @FXML
+    void BlueSeaSelect(MouseEvent mouseEvent) {
+        
+    	if (movieStock.get(10) == 0) {
+            lblBlueSea.setText("Out of Stock");
+            }
+    	else if (BlueSea == 0){
+            BlueSea = 1;
+
+            lblBlueSea.setText("Selected");
+            selectedMovies.add(movieName.get(10)); //adds to movieList view
+            selectedMovieCosts.add(movieCost.get(10)); //adds to movieList view
+        }
+        else if (BlueSea == 1){
+            BlueSea = 0;
+            lblBlueSea.setText("In Stock");
+        }
+    }
+    @FXML
+    void FifthElementSelect(MouseEvent mouseEvent) {
+    	if (movieStock.get(11) == 0) {
+            lblFifthElement.setText("Out of Stock");
+            }
+    	else if (Element == 0){
+            Element = 1;
+            lblFifthElement.setText("Selected");
+            selectedMovies.add(movieName.get(11)); //adds to movieList view
+            selectedMovieCosts.add(movieCost.get(11)); //adds to movieList view
+        }
+        else if (Element == 1){
+            Element = 0;
+            lblFifthElement.setText("In Stock");
+        }
+    }
+  
+    
+    @FXML //METHOD TO CHECKOUT SCREEN
+    void CheckoutSelected(MouseEvent mouseEvent) {
+    	dataTransfer.setMovieList(selectedMovies);  //when user is ready to check out movies, dataTransfer.setMovieList(movieList) will trigger.  
+    	dataTransfer.setMovieCost(selectedMovieCosts);
+    	
+    	if (dataTransfer.getMovieCost().isEmpty() && dataTransfer.getMovieCost().isEmpty()) {
+    		displayError.setVisible(true);
+    	} else {
+    	try {
+            	
+            	//System.out.println(dataTransfer.getSelection()); //for testing purposes
+            	//System.out.println(dataTransfer.getMovieList()); //for testing purposes
+            	//System.out.println(dataTransfer.getMovieCost()); //for testing purposes
+    			Stage stage = (Stage) ButtonCheckout.getScene().getWindow();
+    			stage.close();   	
+            	VBox rootContainer = (VBox) FXMLLoader.load(getClass().getClassLoader().getResource("Checkout.fxml"));
+            	Stage primaryStage = new Stage();
+            	Scene scene = new Scene(rootContainer);
+            	primaryStage.getIcons().add(new Image("https://iconsplace.com/wp-content/uploads/_icons/ff0000/256/png/letter-r-icon-14-256.png"));
+    			primaryStage.setTitle("Redflix: Checkout");
+            	primaryStage.setScene(scene);
+    			primaryStage.show();
+                
+            } catch (Exception e) {
+                System.out.println("Cant load new window");
+            }
+    	}
+   }
+    
+    @FXML
+    void editAccount(ActionEvent event) {
+		try {
+			Stage stage = (Stage) editPaymentButton.getScene().getWindow();
+			stage.close();   			
+			VBox rootContainer = (VBox) FXMLLoader.load(getClass().getClassLoader().getResource("EditPayment.fxml"));
+			Scene scene = new Scene(rootContainer);
+			Stage primaryStage = new Stage();
+			primaryStage.getIcons().add(new Image("https://iconsplace.com/wp-content/uploads/_icons/ff0000/256/png/letter-r-icon-14-256.png"));
+			primaryStage.setTitle("Redflix: Edit Account");
+			primaryStage.setScene(scene);
+			primaryStage.show();
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+    }
+    
+    @FXML
+    void logOut(ActionEvent event) {
+    	try {
+			Stage stage = (Stage) logoutButton.getScene().getWindow();
+			stage.close();   			
+			VBox rootContainer = (VBox) FXMLLoader.load(getClass().getClassLoader().getResource("Login.fxml"));
+			Scene scene = new Scene(rootContainer);
+			Stage primaryStage = new Stage();
+			primaryStage.getIcons().add(new Image("https://iconsplace.com/wp-content/uploads/_icons/ff0000/256/png/letter-r-icon-14-256.png"));
+			primaryStage.setTitle("Redflix: Login");
+			primaryStage.setScene(scene);
+			primaryStage.show();
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+    }
+
+    @FXML
+    void quitProgram(ActionEvent event) {
+    	Platform.exit();
+    }
+
+    }
