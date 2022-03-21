@@ -1,0 +1,80 @@
+package application;
+
+import java.util.List;
+
+public class dataTransfer {
+
+    private static String currentUser;
+    private static String MovieSelect;
+    private static List<String> MovieList;
+    private static List<Integer> MovieCost;
+    private static int MemberID;
+    private static String FullName;
+    private static int PaymentMethodID;
+    
+    //setUser and getUser (Mason Fox) gets and sets user email for log-in purposes.
+    public static void setUser(String email)
+    {
+        currentUser = email;
+    }
+
+    public static String getUser()
+    {
+        return currentUser;
+    }
+    
+    //setSelection and getSelection are not needed... at this moment.
+    public static void setSelection(String movieTitle) {
+    	MovieSelect = movieTitle;
+    }
+ 
+    public static String getSelection()
+    {
+    	return MovieSelect;
+    }
+
+    //setMovieList and getMovieList gets and sets selection of movies by the user from Selection Screen.
+	public static void setMovieList(List<String> movieList) {
+		MovieList = movieList;
+		
+	}
+
+	public static List<String> getMovieList() {
+		return MovieList;
+	}
+
+	//setMovieCost and getMovieCost gets and sets cost of movies that were selected by user from Selection Screen.
+	public static void setMovieCost(List<Integer> selectedMovieCosts) {
+		MovieCost = selectedMovieCosts;
+		
+	}
+	public static List<Integer> getMovieCost() {
+		return MovieCost;
+	}
+	
+	//set and gets member ID
+	public static void setID(int getMemberID) {
+		MemberID = getMemberID;
+		
+	}
+	
+	public static int getID() {
+		return MemberID;
+	}
+	//sets and gets full name
+	public static void setName(String getFullName) {
+		FullName = getFullName;
+	}
+	public static String getName() {
+		return FullName;
+	}
+	//sets and gets payment method ID
+	public static void setPaymentMethodsID(int getPaymentMethodsID) {
+		PaymentMethodID = getPaymentMethodsID;
+		
+	}
+	public static int getPaymentMethodsID() {
+		return PaymentMethodID;
+	}
+
+	}
