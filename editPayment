@@ -1,0 +1,154 @@
+/** FXML made by Nicholas Que. Group Movie 2020. Modified 11/28 by Kim Lee **/
+
+package application;
+
+import java.sql.*;
+import javafx.application.Platform;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
+
+import java.time.LocalDate;
+
+public class EditPayment {
+	
+	boolean buttonValid;
+	boolean cardNumberValid;
+	boolean cardDateValid;
+	boolean cvvCodeValid;
+	String cardNumber;
+	LocalDate cardDate;
+	String cvvCode;
+	String userEmail;
+	Connection con = null;
+
+    @FXML
+    private AnchorPane anchorPane;
+
+    @FXML
+    private Label ScreenLabel;
+
+    @FXML
+    private Label editPayment;
+
+    @FXML
+    private Button quitButton;
+
+    @FXML
+    private Label buttonValidation;
+
+    @FXML
+    private Label paymentMethodLabel;
+
+    @FXML
+    private Label displayUserEmailLabel;
+
+    @FXML
+    private Button paymentButton;
+
+    @FXML
+    private Button selectionButton;
+
+    @FXML
+    private Button validateButton;
+    @FXML 
+    private Button confirmButton;
+    
+   
+    @FXML
+    void getPaymentMethod(ActionEvent event) {
+    	paymentClass newPay = new paymentClass();
+		try {
+			newPay.start(paymentClass.payStage);
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+    }
+    
+    @FXML
+    void validatePayment(ActionEvent event) {
+    	if (paymentClass.getCardNumber() == 0) {
+    		buttonValidation.setText("Invalid payment.");
+    		confirmButton.setVisible(false);
+    	}
+    	else {
+    		buttonValidation.setText("Valid payment.");
+    		confirmButton.setVisible(true);
+    	}
+    }
+ 
+    @FXML 
+    void confirmUpdate(ActionEvent event) throws SQLException {
+    	// getting connection               
+    			 con = DriverManager.getConnection(  "jdbc:oracle:thin:@oracle.gulfcoast.edu:1539:CLASS",             
+    					 							"Java8311", "Java211");              
+    			 // Test connection is null or not		 
+    			 if (con != null)                    
+    				 System.out.println("Connection established successfully!");
+    			 else                     
+    				 System.out.println("No Connection!");  
+    			 
+    			Statement statement = con.createStatement();
+    			String updateQuery = "UPDATE MM_MEMBER SET CREDIT_CARD = '"+paymentClass.getCardNumber()+"', cvv_code = '"+paymentClass.getCvvCode()+"', cc_exp_date = TO_DATE('"+paymentClass.sqlExpDate()+" 00:00:00', 'YYYY-MM-DD HH24:MI:SS') "
+    					+ "WHERE EMAIL_ADDRESS = '"+dataTransfer.getUser()+"'";
+    			statement.executeQuery(updateQuery);
+    			System.out.println("User updated.");
+    			try {
+    				 if(con!=null) con.close();	// close connection 
+    			              
+    			 } catch (SQLException e1) {   
+    				 e1.printStackTrace();   
+    				 }//end catch  
+    			
+    			Stage stage = (Stage) confirmButton.getScene().getWindow();
+    			 stage.close();
+    			 try {
+    					VBox rootContainer = (VBox) FXMLLoader.load(getClass().getClassLoader().getResource("Selection.fxml")); //FOR TESTING FXMLS, SIMPLY TYPE THE FXML FILE NAME IN THE QUOTES.
+    					Scene scene = new Scene(rootContainer);
+    					Stage returnLogin = new Stage();
+    					returnLogin.setScene(scene);
+    					returnLogin.show();
+    					
+    				} catch(Exception e) {
+    					e.printStackTrace();
+    				}
+
+    }
+    
+	@FXML
+	void initialize() { 
+		displayUserEmailLabel.setText("Displaying account information for: " + dataTransfer.getName()); //displays account information for user.
+	}
+
+    @FXML
+    void returnSelection(ActionEvent event) {
+    	Stage stage = (Stage) selectionButton.getScene().getWindow();
+		 stage.close();
+		 try {
+				VBox rootContainer = (VBox) FXMLLoader.load(getClass().getClassLoader().getResource("Selection.fxml")); //FOR TESTING FXMLS, SIMPLY TYPE THE FXML FILE NAME IN THE QUOTES.
+				Scene scene = new Scene(rootContainer);
+				Stage returnLogin = new Stage();
+				returnLogin.setScene(scene);
+				returnLogin.show();
+				
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+
+    }
+	 
+    @FXML
+	    
+    void quitProgram(ActionEvent event) {
+		 
+    	Platform.exit();
+	    
+    }//end submitChange event
+
+}//end class EditAccount
