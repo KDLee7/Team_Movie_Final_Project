@@ -1,0 +1,215 @@
+/** Checkout.java and Checkout.FXML made by Nicholas Que, Stacy Rogers, and Kim Lee. Group Movie 2020. Modified 11/29 **/
+package application;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.time.LocalDate;
+
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
+import javafx.scene.control.RadioButton;
+import javafx.scene.image.Image;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
+
+public class Checkout {
+	//Get Variables
+	private int getRentalID;
+	private int movieStock;
+	private int movieID;
+	private int getPaymentMethodsID;
+	private LocalDate getDate;
+	private int getMemberID;
+	Connection con = null;
+    //get AnchorPane
+	@FXML
+    private AnchorPane anchorPane;
+	//Get Buttons
+	@FXML
+    private Button confirmButton;
+    @FXML
+    private Button cancelButton;
+    @FXML
+    private Button clearButton;
+    @FXML
+    private Button updateButton;
+    //Get Labels
+    @FXML
+    private Label ScreenLabel;
+    @FXML
+    private Label CheckoutLabel;
+    @FXML
+    private Label cartLabel;
+    @FXML 
+    private Label totalMovieCost;
+    @FXML
+    private Label totalLabel;
+    @FXML
+    private RadioButton confirmPurchaseButton;
+    //Get List Views and ObservableLists
+    @FXML
+    private ListView<Integer> movieCostSelection;
+    @FXML
+    private ListView<String> cartSelectionList; //CREATE LIST VIEW FOR OVERALL SELECTION
+    ObservableList<String> movies = FXCollections.observableArrayList(dataTransfer.getMovieList()); //OBSERVABLE LIST THAT GATHERS INFORMATION FROM dataTransfer.getMovieList(), which was populated in Selection Screen
+    ObservableList<Integer> movieCosts = FXCollections.observableArrayList(dataTransfer.getMovieCost()); //OBSERVABLE LIST THAT GATHERS COSTS OF MONEY, POPULATED IN SELECTION SCREEN
+    
+    //METHOD THAT SETS CONFIRMBUTTON TO VISIBLE AFTER CONFIRM RADIO BUTTON IS SELECTED
+    @FXML 
+    void setConfirmed (ActionEvent event) {
+    	if (confirmPurchaseButton.isSelected()) {
+    		confirmButton.setVisible(true);    	
+    		}
+    	else {
+    		confirmButton.setVisible(false);
+    	}
+    }
+    
+    //METHOD THAT CALLS SQL DATABASE AND PERFORMS ALL QUERIES.
+    @FXML
+    void confirmOrder(ActionEvent event) throws SQLException, ClassNotFoundException {
+    	try {              
+			 // registering Oracle driver class               
+			 Class.forName("oracle.jdbc.driver.OracleDriver");               
+			 
+			 // getting connection               
+			 con = DriverManager.getConnection(  "jdbc:oracle:thin:@oracle.gulfcoast.edu:1539:CLASS",             
+					 							"Java8311", "Java211");     
+	
+			 Statement stmt = con.createStatement();
+			 String name = null;
+			 for (String i : movies) {
+				 name = i;
+				 String getStock = "Select movie_id, movie_qty from MM_MOVIE where movie_title = '"+name+"'";
+				 ResultSet rs = stmt.executeQuery(getStock);
+				 while (rs.next()) {
+					 //System.out.println("Stock: " + rs.getInt("movie_qty")); For Testing Purposes: Prints movie stock and gets stock for printing.
+					 setMovieStock(rs.getInt("movie_qty")); //get movie stock
+					 //System.out.println("Movie ID: " + rs.getInt("movie_id")); For Testing Purposes: Prints movie id and gets id for printing.
+					 movieID = rs.getInt("movie_id"); //get movieID
+				 }
+				 
+				 String getID = "Select member_id, payment_methods_id from MM_MEMBER where email_address= '"+dataTransfer.getUser()+"'";
+				 rs = stmt.executeQuery(getID);
+				 while (rs.next()) {
+					 setGetMemberID(rs.getInt("member_id"));
+					 //System.out.println("Member ID: " + getMemberID); For Testing Purposes: Prints Member ID and gets Member ID for printing
+					 getPaymentMethodsID = rs.getInt("payment_methods_id"); 
+					 //System.out.println("Payment ID: " + getPaymentMethodsID); For Testing Purposes: Prints Payment ID and gets PaymentMethod ID for printing
+				 }
+				 
+				 String getLastRentalID = "Select RENTAL_ID FROM MM_RENTAL ORDER BY ROWNUM DESC FETCH FIRST 1 ROW ONLY";
+				 rs = stmt.executeQuery(getLastRentalID);
+				 //When the last number is found, it parses it as an INT and adds 1 to create a new ID.
+				 //There's probably an auto-increment method for this, but this was the best I (Nick Que) could do.
+				 while (rs.next()) {
+					 getRentalID = rs.getInt("RENTAL_ID"); //get Rental ID
+				 }
+				 getRentalID = getRentalID + 1; //add 1 to Rental ID
+				 //System.out.println("Rental ID: " + getRentalID); For Testing Purposes: Prints Rental ID and gets Rental ID for movie for printing
+				 
+				 String insertRentalQuery = "INSERT INTO MM_RENTAL (RENTAL_ID, MEMBER_ID, MOVIE_ID, CHECKOUT_DATE, CHECKIN_DATE, PAYMENT_METHODS_ID)"
+						 + "VALUES ('"+getRentalID+"', '"+dataTransfer.getID()+"', '"+movieID+"', TO_DATE('"+getDate+"00:00:00', 'YYYY-MM-DD HH24:MI:SS'), '', '"+getPaymentMethodsID+"')";
+				 rs = stmt.executeQuery(insertRentalQuery);
+				 
+				 String updateQuantityQuery = "UPDATE MM_MOVIE SET MOVIE_QTY = MOVIE_QTY - 1 WHERE MOVIE_id = '" + movieID+"'";
+				 rs = stmt.executeQuery(updateQuantityQuery);
+				 //System.out.println("ALL INPUT SUCCESSFUL."); For Testing Purposes: Prints line when iteration is complete.
+			 } 
+    	} catch (ClassNotFoundException e1) {        
+    		e1.printStackTrace();        } 
+    	catch (SQLException e1) {               
+    		e1.printStackTrace();        
+    	}//end catch
+    	finally{
+    		try {
+    			if(con!=null) con.close();	// close connection               
+    		} catch (SQLException e1) {   
+    			e1.printStackTrace();   
+    		}//end catch     
+    	}//end finally to close connection
+    	
+    	//CLOSES CHECKOUT, OPENS POPUP AND DISPLAYS SUCCESSFUL CHECKOUT FXML
+    	Stage stage = (Stage) confirmButton.getScene().getWindow();
+		stage.close();
+		try {
+			VBox rootContainer = (VBox) FXMLLoader.load(getClass().getClassLoader().getResource("CheckoutPopup.fxml"));
+			Scene scene = new Scene(rootContainer);
+			Stage primaryStage = new Stage();
+			primaryStage.getIcons().add(new Image("https://iconsplace.com/wp-content/uploads/_icons/ff0000/256/png/letter-r-icon-14-256.png"));
+			primaryStage.setTitle("Redflix: Checkout Successul!");
+			primaryStage.setScene(scene);
+			primaryStage.show();		
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+    } //end confirmOrder method
+
+    
+    @FXML //METHOD THAT RETURNS USER TO SELECTION SCREEN
+    void cancelOrder(ActionEvent event) {
+    	
+    
+    	Stage stage = (Stage) cancelButton.getScene().getWindow();
+		stage.close();   
+    	
+    	try {
+			VBox rootContainer = (VBox) FXMLLoader.load(getClass().getClassLoader().getResource("Selection.fxml"));
+			Scene scene = new Scene(rootContainer);
+			Stage primaryStage = new Stage();
+			primaryStage.getIcons().add(new Image("https://iconsplace.com/wp-content/uploads/_icons/ff0000/256/png/letter-r-icon-14-256.png"));
+			primaryStage.setTitle("Redflix: Selection");
+			primaryStage.setScene(scene);
+			primaryStage.show();
+				
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+    } //end cancelOrder method
+    
+    @FXML //INITIALIZES EVERYTHING
+    void initialize() {
+    	CheckoutLabel.setText("Display checkout cart for: " + dataTransfer.getName());
+    	int sum = 0;
+        getDate = java.time.LocalDate.now(); //gives current time. Use this as checkout date.
+		 cartSelectionList.setItems(movies); //SETS ITEMS FROM OBSERVABLELIST INTO CART SELECTION LIST
+		 movieCostSelection.setItems(movieCosts); //SETS ITEMS FROM OBSERVABLELIST INTO COST LIST
+	
+	//FOR SUM OF COSTS
+	for (int i : movieCosts) {
+		 sum = sum + i;
+	} //end for loop
+	String stringSum = String.valueOf(sum); //gets value of the sum and adds $next to it.
+	totalMovieCost.setText("$" + stringSum);
+    } 
+    
+    //getMovieStock and setMovieStock sets and gets movieStock.
+	public int getMovieStock() {
+		return movieStock;
+	}
+	
+	public void setMovieStock(int movieStock) {
+		this.movieStock = movieStock;
+	}
+	//getGetMemberID and setGetMemberID gets and sets member ID.
+	public int getGetMemberID() {
+		return getMemberID;
+	}
+
+	public void setGetMemberID(int getMemberID) {
+		this.getMemberID = getMemberID;
+	}//end initialize method
+}//end Checkout
+
+
