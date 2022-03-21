@@ -1,0 +1,362 @@
+/** Register.java and Register.FXML designed and updated by Nicholas Que. Modified on 11/26/2020. 
+ *  Password and Email Regular Expressions originally made by Stacy Rogers, updated by Nicholas Que (11-16/17-2020)
+ *  paymentMethod class added by Mason Fox on 11/26/2020. 
+ *  Comments and updates added by Nick on 11/29/2020
+ */
+package application;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.time.LocalDate;
+
+import javafx.application.Platform;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TitledPane;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
+
+
+public class Register {
+	//REGEXS FOR PATTERNS
+	private final static String PASSWORD_PATTERN = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#&()�[{}]:;'|~`,?/*~$^+=<>]).{8,20}$"; //Regex for Password: Make sure password is 8-20 length, 1 cap, 1 sym, 1 number
+	private final static String EMAIL_PATTERN = "^[\\w-_\\.+]*[\\w-_\\.]\\@([\\w]+\\.)+[\\w]+[\\w]$"; //Regex for EMAIL: checks that user entered @[insert mail].com.  
+	//BOOLEANS FOR VALIDATION
+	boolean firstNameValid;
+	boolean lastNameValid;
+	boolean passwordValid;
+	boolean confirmPasswordValid;
+	boolean emailValid;
+	boolean paymentValid;
+	//VARIABLES
+	int finalID;
+	String firstName;
+	String lastName;
+	String cardNumber;
+	LocalDate cardDate;
+	String cvvCode;
+	String getPassword;
+	String getConfirm;
+	String getEmail;
+	//TITLED AND ANCHOR PANES
+	@FXML
+    private TitledPane redflixTitledPane;
+
+    @FXML
+    private AnchorPane clearButton; 
+    //For some reason, Scene Builder defaulted this button as an Anchor Pane. This was left alone so as to not break the code.
+    
+    //TEXT FIELDS
+    @FXML
+    private TextField firstnameField;
+
+    @FXML
+    private TextField lastnameField;
+
+    @FXML
+    private TextField emailTextField;
+    
+    //BUTTONS
+    @FXML
+    private Button confirmButton;
+
+    @FXML
+    private Button clearInputButton;
+    
+    @FXML
+    private Button backLogin;
+
+    @FXML
+    private Button quitButton;
+    
+    @FXML
+    private Button paymentBtn;
+   
+    @FXML
+    private Button validateInput;
+    
+    //LABELS
+    @FXML
+    private Label redflixTitle;
+
+    @FXML
+    private Label captionLabel;
+
+    @FXML
+    private Label firstnameLabel;
+
+    @FXML
+    private Label lastnameLabel;
+
+    @FXML
+    private Label paymentLabel;
+
+    @FXML
+    private Label passwordLabel;
+    
+    @FXML
+    private Label confirmPasswordLabel;
+   
+    @FXML
+    private Label emailLabel;
+    
+    @FXML
+    private Label buttonValidation;
+
+    @FXML
+    private Label lastNameValidation;
+
+    @FXML
+    private Label firstNameValidation;
+
+    @FXML
+    private Label cardNumberValidation;
+
+    @FXML
+    private Label cardDateValidation;
+
+    @FXML
+    private Label passwordValidation;
+
+    @FXML
+    private Label confirmPasswordValidation;
+
+    @FXML
+    private Label emailValidation;
+
+    @FXML
+    private Label passwordInstructionsLabel;
+    
+    @FXML
+    private Label determineValidation;
+    
+    @FXML
+    private Label paymentMethodValidationLabel;
+    
+    //PASSWORD FIELDS
+    @FXML
+    private PasswordField passwordField;
+
+    @FXML
+    private PasswordField confirmPasswordField;
+    
+    
+    @FXML
+    void displayPasswordLogic(MouseEvent event) {
+    	passwordInstructionsLabel.setVisible(true);
+
+    }
+    @FXML
+    void hidePasswordLogic(MouseEvent event) {
+    	passwordInstructionsLabel.setVisible(false);
+
+    }
+
+
+    //METHOD THAT EXECUTE paymentClass (MADE AND MODIFIED BY MASON)
+    @FXML
+    void executePayment(ActionEvent event) {  	
+    	paymentClass newPay = new paymentClass();
+    		try {
+    			newPay.start(paymentClass.payStage);
+    		} catch(Exception e) {
+    			e.printStackTrace();
+    		}
+    } //end paymentClass
+  
+    //CLEARS ALL INPUT AND SETS xVALID TEXTS TO NOTHING.
+    @FXML
+    void clearInput(ActionEvent event) {
+    	firstnameField.setText(""); 
+    	lastnameField.setText("");
+    	emailTextField.setText("");
+    	passwordField.setText("");
+    	confirmPasswordField.setText("");
+    	firstNameValidation.setText("");
+    	lastNameValidation.setText("");
+    	buttonValidation.setText("");
+    	passwordValidation.setText("");
+    	confirmPasswordValidation.setText("");
+    	emailValidation.setText("");
+    	confirmButton.setVisible(false);
+    } //end clearInput
+    
+    //METHOD THAT VALIDATES ALL INPUT
+    @FXML 
+    void validate(ActionEvent event) { //validates all input
+    	
+    	//VALIDATES FIRST NAME INPUT
+    	if (firstnameField.getText().isEmpty() || firstnameField.getText().length() > 16) { 
+    		firstNameValidation.setText("Invalid first name."); 
+    		firstNameValid = false;
+    	} else if (!(firstnameField.getText().isEmpty()) || !((firstnameField.getText().length()) > 16)) { 
+    		String toProperFirstName = firstnameField.getText();
+    		toProperFirstName = firstnameField.getText().substring(0, 1).toUpperCase() + firstnameField.getText().substring(1).toLowerCase().trim();
+    		firstNameValidation.setText("First name is valid.");
+    		firstnameField.setText(toProperFirstName);
+    		firstName = toProperFirstName; //GETS PROPERCASE FIRST NAME
+    		firstNameValid = true;
+    	}
+    	
+    	//VALIDATES LAST NAME INPUT
+    	if (lastnameField.getText().isEmpty()) { //last name validation
+    		lastNameValidation.setText("Invalid last name.");
+    		lastNameValid = false;
+    	} else if (!lastnameField.getText().isEmpty()) { //if last name is valid, set to proper case then determine valid
+    		String toProperLastName = lastnameField.getText();
+    		toProperLastName = lastnameField.getText().substring(0, 1).toUpperCase() + lastnameField.getText().substring(1).toLowerCase().trim();
+    		lastNameValidation.setText("Last name is valid.");
+    		lastnameField.setText(toProperLastName);
+    		lastName = toProperLastName; //GETS PROPERCASE LAST NAME
+    		lastNameValid = true;
+    	}
+    	
+    	//VALIDATES PASSWORD INPUT
+    	if (passwordField.getText().isEmpty()){
+    		passwordValidation.setText("Please enter password.");	
+    	} else if (!(passwordField.getText().matches(PASSWORD_PATTERN))) { 
+    		passwordValidation.setText("Password is not valid. Try again.");
+    		passwordValid = false;	
+    	} else if (passwordField.getText().matches(PASSWORD_PATTERN)) { 
+    		passwordValidation.setText("Password is valid.");
+    		getPassword = passwordField.getText(); //GETS PASSWORD
+    		passwordValid = true;
+    	}
+    	
+    	//VALIDATES CONFIRMATION PASSWORD INPUT
+    	if (!(confirmPasswordField.getText().matches(passwordField.getText()))) { 
+    		confirmPasswordValidation.setText("Please confirm your password.");
+    	} else if (confirmPasswordField.getText().isEmpty()) {
+    		confirmPasswordValidation.setText("Confirmation not valid.");
+    		confirmPasswordValid = false;
+    	} else if (confirmPasswordField.getText().matches(passwordField.getText())) { 
+    		confirmPasswordValidation.setText("Password Confirmed.");
+
+    		confirmPasswordValid = true;
+    	}
+    	
+    	//VALIDATES EMAIL INPUT
+    	if (emailTextField.getText().isEmpty()) { //email validation
+    		emailValidation.setText("Please enter email.");
+    	} else if (!(emailTextField.getText().matches(EMAIL_PATTERN))) {
+    		emailValidation.setText("Please enter valid email.");
+    		emailValid = false;
+    	} else if(emailTextField.getText().matches(EMAIL_PATTERN)) { //get email validaiton
+    		emailValidation.setText("Email is valid.");
+    		getEmail = emailTextField.getText(); //GETS EMAIL
+    		emailValid = true;
+    	}
+    	
+    	//VALIDATES PAYMENT METHOD INPUT
+    	if (paymentClass.getCardNumber() == 0) {
+    		paymentMethodValidationLabel.setText("Payment Method invalid.");
+    		paymentValid = false;
+    	} else {
+    		paymentMethodValidationLabel.setText("Payment Method valid.");
+    		paymentValid = true;
+    	}
+    	
+    	//IF ALL BOOLEANS ARE SET TO TRUE, THE CONFIRM BUTTON WILL NO LONGER BE INVISIBLE
+		if (firstNameValid == true && lastNameValid == true && paymentValid == true && passwordValid == true && passwordValid == true
+				&& confirmPasswordValid == true && emailValid == true) {
+			confirmButton.setVisible(true); 	
+		}
+    }
+    
+    //METHOD THAT CONFIRMS SUBMISSION (OPENS SQL DATABASE AND INSERTS NEW MEMBER INPUT)
+    @FXML
+    void confirmSubmission(ActionEvent event) throws ClassNotFoundException, SQLException {//confirms all input
+    	//gets Connection and all that jazz
+    	Connection con;
+    	Class.forName("oracle.jdbc.driver.OracleDriver");               
+		 
+		 // getting connection               
+		 con = DriverManager.getConnection(  "jdbc:oracle:thin:@oracle.gulfcoast.edu:1539:CLASS",             
+				 							"Java8311", "Java211");              
+		 /* Test connection is null or not		 
+		 if (con != null)                    
+			 System.out.println("Connection established successfully!");
+		 else                     
+			 System.out.println("No Connection!"); 
+			 */
+		 
+		 //SQL Statements, String Query, and Result Set: Fetches last member ID
+		 Statement statement = con.createStatement();
+		 String getlastID = "Select MEMBER_ID FROM mm_member ORDER BY ROWNUM DESC FETCH FIRST 1 ROW ONLY";
+		 
+		 ResultSet Result = statement.executeQuery(getlastID);
+		 //When the last number is found, it parses it as an INT and adds 1 to create a new ID.
+		 //There's probably an auto-increment method for this, but this was the best I (Nick Que) could do.
+		 while (Result.next()) {
+		 String newID = Result.getString("MEMBER_ID");
+		 finalID = Integer.parseInt(newID) + 1; 
+		 }
+
+		 //SQL STATEMENT TO INSERT NEW ID. Modified by Mason, changed the CC fields into info from paymentClass.
+		 String insertNewMember = "INSERT INTO MM_MEMBER (MEMBER_ID, LAST, FIRST, CREDIT_CARD, PASSWORD, EMAIL_ADDRESS, CVV_CODE, CC_EXP_DATE, PAYMENT_METHODS_ID)" +
+		 "VALUES ('"+finalID+"', '"+firstName+"', '"+lastName+"', '"+paymentClass.getCardNumber()+"', '"+getPassword+"', '"+getEmail+"', '"+paymentClass.getCvvCode()+"', "
+		 		+ "TO_DATE('"+paymentClass.sqlExpDate()+" 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), '"+paymentClass.getPaymentMethodID()+"')";
+		 //executes the new insertNewMember string query
+		 Result = statement.executeQuery(insertNewMember);
+		 
+		 try {
+			 if(con!=null) con.close();	// close connection 
+		              
+		 } catch (SQLException e1) {   
+			 e1.printStackTrace();   
+			 }//end catch     
+		 
+		 //CLOSES WINDOW AND RETURNS TO LOGIN SCREEN
+		 Stage stage = (Stage) confirmButton.getScene().getWindow();
+		 stage.close();
+		 try {
+				VBox rootContainer = (VBox) FXMLLoader.load(getClass().getClassLoader().getResource("Login.fxml")); //FOR TESTING FXMLS, SIMPLY TYPE THE FXML FILE NAME IN THE QUOTES.
+				Scene scene = new Scene(rootContainer);
+				Stage returnLogin = new Stage();
+				returnLogin.setScene(scene);
+				returnLogin.show();
+				
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+		} 
+    
+    //RETURNS USER TO LOG IN SCREEN
+    @FXML
+    void backToLogin(ActionEvent event) { //returns to Login screen
+    	Stage stage = (Stage) confirmButton.getScene().getWindow();
+		stage.close();
+    	try {
+			VBox rootContainer = (VBox) FXMLLoader.load(getClass().getClassLoader().getResource("Login.fxml")); 
+			Scene scene = new Scene(rootContainer);
+			Stage returnLogin = new Stage();
+			returnLogin.setScene(scene);
+			returnLogin.show();
+			
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+    }
+    
+    //QUITS PROGRAM
+    @FXML
+    void quitProgram(ActionEvent event) { //quits the program
+    	Platform.exit();
+    	
+    	
+   }
+    
+    
+    
+}
